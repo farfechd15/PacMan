@@ -31,9 +31,9 @@ public class Fantasma {
 	public int getColumnas() {
 		return columna;
 	}
-	
+
 	public void dibujar() {
-		game.dibujarFantasma(fila, columna, "fantasma_"+color+"_"+direccion);
+		game.dibujarFantasma(fila, columna, "fantasma_" + color + "_" + direccion);
 	}
 
 	public void borrar() {
@@ -41,29 +41,33 @@ public class Fantasma {
 	}
 
 	public void girar() {
-		int i = 0;
-		if(game.puedoIrAhi(fila, columna)) {
-		i=rnd.nextInt(4);
-		if(direccion==i) {
-			if(i==3) {
-				i=1;
-			} else {
-				i=rnd.nextInt(4);
-			}
-			i=direccion;
-	
-		
-		game.puedoIrAhi(fila, columna);
+		if (fila == 8 && columna == 31 || fila == 8 && columna == 0) {
+			direccion = (direccion + 2) % 4;
+		} else {
+			int nuevaDireccion;
+			do {
+				nuevaDireccion = rnd.nextInt(4);
+			} while (nuevaDireccion == (direccion + 2) % 4 || !puedoIrEnEstaDireccion(nuevaDireccion));
+			direccion = nuevaDireccion;
 		}
-		direccion=i;
-		//TODO Ver en las tres direcciones si es que puede avanzar hacia ahí
-		//Entre todas donde pueda, seleccionar aleatoriamente
-		dibujar();
-	}}
+	}
+
+	public boolean puedoIrEnEstaDireccion(int direccion) {
+		if (direccion == 0) {
+			return game.puedoIrAhi(fila - 1, columna);
+		} else if (direccion == 1) {
+			return game.puedoIrAhi(fila, columna + 1);
+		} else if (direccion == 2) {
+			return game.puedoIrAhi(fila + 1, columna);
+		} else if (direccion == 3) {
+			return game.puedoIrAhi(fila, columna - 1);
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
 
 	public void avanzarFantasma() {
 		game.borrarFantasma(fila, columna);
-		girar();
 		if (direccion == 0) {
 			if (game.puedoIrAhi(fila - 1, columna)) {
 				game.borrarFantasma(fila, columna);
@@ -93,15 +97,15 @@ public class Fantasma {
 		} else {
 			throw new IllegalStateException("ValorDeDireccionInvalido");
 		}
+		girar();
 		dibujar();
 	}
 
 	public void comenzarMovimiento() {
-		idDelAvanzadorf = game.executeRepeatedly(new AvanzadorDeFantasma(this), 15);
-		}
-	
+		idDelAvanzadorf = game.executeRepeatedly(new AvanzadorDeFantasma(this), 125);
+	}
+
 	public void dejarDeAvanzar() {
 		game.stopLoop(idDelAvanzadorf);
-	}}
-
-
+	}
+}
