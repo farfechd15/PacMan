@@ -14,13 +14,11 @@ public class PacManController implements GameController {
 
 	@Override
 	public void onButtonPressed(String name) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onCellPressed(int row, int col) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -80,7 +78,6 @@ public class PacManController implements GameController {
 	    libreria.clearCellObjectImage(fila, columna);
 	}
 	private void actualizarVidas(int vidas) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -145,7 +142,10 @@ public class PacManController implements GameController {
 	    libreria.showTemporaryMessage(mensaje);
 	}
 	public void executeLater(Runnable runnable, int i) {
-		// TODO Auto-generated method stub
 		
+	}
+
+	public void dibujarPunto(int fila, int columna) {
+		libreria.setCellObjectImage(fila, columna, "puntoPac");
 	}
 }
