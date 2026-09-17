@@ -9,6 +9,8 @@ public class Fantasma {
 	private int color = 0; // 0=rojo, 1=rosa, 2=celeste, 3=naranja
 	private PacManGame game;
 	private String idDelAvanzadorf;
+	private int velocidad = 125;
+    private int contadorRalentizado = 0;
 
 	private Random rnd = new Random();
 
@@ -24,11 +26,11 @@ public class Fantasma {
 		return direccion;
 	}
 
-	public int getFilas() {
+	public int getFila() {
 		return fila;
 	}
 
-	public int getColumnas() {
+	public int getColumna() {
 		return columna;
 	}
 
@@ -67,6 +69,12 @@ public class Fantasma {
 	}
 
 	public void avanzarFantasma() {
+		if (contadorRalentizado > 0) {
+			contadorRalentizado--;
+			if (contadorRalentizado == 0) {
+				setVelocidad(125); // Vuelve a la velocidad normal cuando el contador llega a 0
+			}
+		}
 		game.borrarFantasma(fila, columna);
 		if (direccion == 0) {
 			if (game.puedoIrAhi(fila - 1, columna)) {
@@ -99,13 +107,33 @@ public class Fantasma {
 		}
 		girar();
 		dibujar();
+		game.verificarColision();
 	}
 
 	public void comenzarMovimiento() {
-		idDelAvanzadorf = game.executeRepeatedly(new AvanzadorDeFantasma(this), 125);
+		idDelAvanzadorf = game.executeRepeatedly(new AvanzadorDeFantasma(this), velocidad);
 	}
 
 	public void dejarDeAvanzar() {
 		game.stopLoop(idDelAvanzadorf);
+	}
+
+	public void setVelocidad(int nuevaVelocidad) {
+        this.velocidad = nuevaVelocidad;
+        dejarDeAvanzar();    
+		comenzarMovimiento();
+    }
+
+	public void restaurarVelocidad() {
+		setVelocidad(125);
+	}
+
+	public int getVelocidad() {
+		return velocidad;
+	}
+
+	public void ralentizar(int pasos) {
+		this.contadorRalentizado = pasos;
+		setVelocidad(250);
 	}
 }
