@@ -16,7 +16,7 @@ public class PacManGame {
 			{ 0, 0, 0, 0, 0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 0, 1, 1, 1, 1, 0, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0 },
-			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
 			{ 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 2, 0, 2, 2, 2, 2, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 2, 2, 0, 2, 0, 0, 0, 0, 0 },
@@ -27,29 +27,24 @@ public class PacManGame {
 			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 	private PacMan pacman;
-	private Fantasma fantasma;
 	private PacManController controller;
-	// private Posicion posicion;
 	private int score = 0;
 	private List<Fruta> listaFrutas;
 	private Fantasma[] arrFant = new Fantasma[4];
 	private Random random = new Random();
 
-	private int vidas = 3;
+	private int vidas = 1;
+	private int[][] casillasVidas = { { 17, 0 } };
 
-	private int[][] casillasVidas = { { 17, 1 }, { 17, 2 }, { 17, 3 } };
-
-	private int contadorTiempoFruta = 0;
-	private int intervaloTiempoFruta = 30; // veces se crearia una fruta
 	private int maxFrutasSimultaneas = 3;
 	private boolean velocidadAumentada = false;
 	private int contadorDePuntos=338;
+	private String loopFrutasId; 
 
 	public PacManGame(PacManController controller) {
 		this.controller = controller;
 		this.pacman = new PacMan(10, 15, this);
 		this.listaFrutas = new LinkedList<>();
-		inicializarFrutas();
 	}
 
 	// 0 = pared; 1= camino vacio; 2= camino lleno
@@ -82,7 +77,20 @@ public class PacManGame {
 	}
 
 	private void victoria() {
-		stopLoop(id);		
+		pacman.detenerse();
+		for (int i = 0; i < getArrFant().length; i++) {
+			getArrFant()[i].dejarDeAvanzar();
+		}
+		stopLoop(loopFrutasId);
+		for (int i = 0; i < listaFrutas.size(); i++) {
+	        Fruta f = listaFrutas.get(i);
+	        controller.borrarPacman(f.getFila(), f.getColumna());
+	    }
+		if (isVelocidadAumentada()) {
+	        desactivarVelocidad();
+	    }
+		controller.mostrarBotonReiniciar();
+	    showTemporaryMessage("¡Felicidades! ¡Has ganado!");
 	}
 
 	public void borrarPacman(int filas, int columnas) {
@@ -125,12 +133,7 @@ public class PacManGame {
 		dibujarFrutas(); // inicio dle juego
 		inicializarFantasmas();
 		dibujarVidasIniciales();
-		executeRepeatedly(new Runnable() {
-			@Override
-			public void run() {
-				actualizarAparicionFrutaPorTiempo();
-			}
-		}, 300);
+		this.loopFrutasId = executeRepeatedly(new ActualizadorDeFrutaPorTiempo(this), 6000);	
 	}
 
 	public void dibujarFrutas() {
@@ -145,7 +148,6 @@ public class PacManGame {
 			int f = casillasVidas[i][0];
 			int c = casillasVidas[i][1];
 			controller.dibujarVida(f, c);
-
 		}
 	}
 
@@ -155,7 +157,6 @@ public class PacManGame {
 			int f = casillasVidas[vidas][0];
 			int c = casillasVidas[vidas][1];
 			controller.cambiarAVidaVacia(f, c);
-
 		}
 	}
 
@@ -167,30 +168,35 @@ public class PacManGame {
 	public void recolectarFruta(Fruta fruta) {
 		controller.borrarPacman(fruta.getFila(), fruta.getColumna());
 		listaFrutas.remove(fruta);
-		// sumarPuntaje(100);
 		fruta.aplicarPoder(this);
-
 	}
-
 	public void actualizarAparicionFrutaPorTiempo() {
-		contadorTiempoFruta++;
-		if (contadorTiempoFruta >= intervaloTiempoFruta) {
-			contadorTiempoFruta = 0;
-			if (listaFrutas.size() < maxFrutasSimultaneas) {
-				generarFrutaAleatoria();
-			}
-		}
+		if (listaFrutas.size() < maxFrutasSimultaneas) {
+	        generarFrutaAleatoria();
+	    }
 	}
 
-	private void generarFrutaAleatoria() {
+private void generarFrutaAleatoria() {
 		LinkedList<Posicion> posicionesLibres = new LinkedList<>();
-		for (int r = 0; r < filas; r++) {
-			for (int c = 0; c < columnas; c++) {
-				if (puedoIrAhi(r, c)) {
-					posicionesLibres.add(new Posicion(r, c));
-				}
-			}
-		}
+		int[] columnasProhibidas = {13, 14, 15, 16, 17, 18};
+
+	    for (int r = 0; r < filas; r++) {
+	        for (int c = 0; c < columnas; c++) {
+	            
+	            boolean esValida = puedoIrAhi(r, c);
+	            if (esValida && r == 7) {
+	                for (int i = 0; i < columnasProhibidas.length; i++) {
+	                    if (c == columnasProhibidas[i]) {
+	                        esValida = false;
+	                    }
+	                }
+	            }
+
+	            if (esValida) {
+	                posicionesLibres.add(new Posicion(r, c));
+	            }
+	        }
+	    }
 		if (posicionesLibres.size() > 0) {
 			int indice = random.nextInt(posicionesLibres.size());
 			Posicion posElegida = posicionesLibres.get(indice);
@@ -213,16 +219,9 @@ public class PacManGame {
 
 			listaFrutas.add(nuevaFruta);
 
-			if (controller != null) {
-				controller.dibujarFruta(f, c, nuevaFruta.getNombre().toLowerCase());
-			}
+			controller.dibujarFruta(f, c, nuevaFruta.getNombre().toLowerCase());
 		}
 	}
-
-	private void inicializarFrutas() {
-		generarFrutaAleatoria();
-	}
-
 	public int getValor(int fila, int columna) {
 		return this.mapa[fila][columna];
 	}
@@ -279,12 +278,12 @@ public class PacManGame {
 
 	public void activarVelocidadTemporal(int duracionMs) {
 		this.velocidadAumentada = true;
+		pacman.actualizarVelocidad();
 		controller.programarFinVelocidad(duracionMs);
-
 	}
-
 	public void desactivarVelocidad() {
 		this.velocidadAumentada = false;
+		pacman.actualizarVelocidad();
 	}
 
 	public boolean isVelocidadAumentada() {
@@ -296,37 +295,82 @@ public class PacManGame {
 	}
 
 	public void verificarColision() {
-		for (int i = 0; i < arrFant.length; i++) {
-			if (arrFant[i] != null) {
-				int ff = arrFant[i].getFilas();
-				int fc = arrFant[i].getColumnas();
+		for (int i = 0; i < getArrFant().length; i++) {
+			if (getArrFant()[i] != null) {
+				int ff = getArrFant()[i].getFila();
+				int fc = getArrFant()[i].getColumna();
 
 				if (pacman.getFila() == ff && pacman.getColumna() == fc) {
-					pacman.detenerse();
-					for (int j = 0; j < arrFant.length; j++) {
-						if (arrFant[j] != null) {
-							arrFant[j].dejarDeAvanzar();
-						}
-					}
-					perderVida();
-
-					if (vidas > 0) {
-//	                   TODO
-					}
+					gameOver();
 				}
 			}
 		}
 	}
-
-	public void reiniciarPosiciones() {
-		pacman.detenerse();
-		controller.borrarPacman(pacman.getFila(), pacman.getColumna());
-		for (int i = 0; i < arrFant.length; i++) {
-			if (arrFant[i] != null) {
-				arrFant[i].dejarDeAvanzar();
-				controller.borrarFantasma(arrFant[i].getFilas(), arrFant[i].getColumnas());
-			}
-		}
+public Fantasma[] getArrFant() {
+		return arrFant;
 	}
 
+	public void reiniciarJuego() {
+		pacman.detenerse();
+		borrarPacman(pacman.getFila(), pacman.getColumna());
+		for (int i = 0; i < arrFant.length; i++) {
+			arrFant[i].dejarDeAvanzar();
+			arrFant[i].borrar();
+		}
+		stopLoop(loopFrutasId);
+		
+		for (int i = 0; i < listaFrutas.size(); i++) {
+	        Fruta f = listaFrutas.get(i);
+	        controller.borrarPacman(f.getFila(), f.getColumna()); // Borra la imagen de la fruta
+	    }
+		
+		this.listaFrutas = new LinkedList<>();
+		this.score = 0;
+		this.contadorDePuntos = 338;
+		this.vidas=1;
+		controller.actualizarPuntaje(this.score);
+
+		dibujarVidasIniciales();
+		
+		for (int r = 0; r < filas; r++) {
+			for (int c = 0; c < columnas; c++) {
+				boolean esZonaCasaFantasmas = (r == 6 || r == 7) && (c >= 13 && c <= 18);
+				if (mapa[r][c] == 1 && !esZonaCasaFantasmas) { // Lo que era camino vacio vuelve a tener punto
+					mapa[r][c] = 2;
+					controller.dibujarPunto(r, c); // Vuelve a pintar el punto amarillo
+				}
+			}
+		}
+		generarFrutaAleatoria();
+
+		this.pacman = new PacMan(10, 15, this);
+		this.arrFant = new Fantasma[4];
+		this.arrFant[0] = new Fantasma(8, 14, 0, 0, this); // Rojo
+		this.arrFant[1] = new Fantasma(8, 15, 1, 1, this); // Rosa
+		this.arrFant[2] = new Fantasma(8, 16, 2, 2, this); // Celeste
+		this.arrFant[3] = new Fantasma(8, 17, 3, 3, this); // Naranja
+		dibujarPacman(pacman.getFila(), pacman.getColumna(), pacman.getDireccion());
+		for (int i = 0; i < arrFant.length; i++) {
+			arrFant[i].dibujar();
+		}
+		pacman.comenzarAAvanzar();
+		for (int i = 0; i < arrFant.length; i++) {
+			arrFant[i].comenzarMovimiento();
+		}
+		this.loopFrutasId = executeRepeatedly(new ActualizadorDeFrutaPorTiempo(this), 4500);
+	}
+	private void gameOver() {
+		perderVida();
+		pacman.detenerse();
+
+		for (int i = 0; i < getArrFant().length; i++) {
+			if (getArrFant()[i] != null) {
+				getArrFant()[i].dejarDeAvanzar();
+			}
+		}
+		stopLoop(loopFrutasId);
+		dibujarPacman(pacman.getFila(), pacman.getColumna(), pacman.getDireccion());
+		controller.mostrarBotonReiniciar();
+		controller.mensaje("GAME OVER");
+	}
 }
