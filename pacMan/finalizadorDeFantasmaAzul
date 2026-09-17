@@ -1,0 +1,14 @@
+package edu.upb.lp.game.pacMan;
+
+public class FinalizadorDeFantasmaAzul implements Runnable {
+    private PacManGame game;
+
+    public FinalizadorDeFantasmaAzul(PacManGame game) {
+        this.game = game;
+    }
+
+    @Override
+    public void run() {
+        game.desactivarEfectoAzul();
+    }
+}
