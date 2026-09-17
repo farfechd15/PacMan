@@ -14,7 +14,10 @@ public class PacManController implements GameController {
 
 	@Override
 	public void onButtonPressed(String name) {
-
+		if (name.equals("RESTART")) {
+	        libreria.removeButton(name);
+	        game.reiniciarJuego(); 
+	    }
 	}
 
 	@Override
@@ -51,9 +54,7 @@ public class PacManController implements GameController {
 				}
 			}
 		}
-		
 	    actualizarPuntaje(game.getScore());
-	    actualizarVidas(game.getVidas());
 		// Vincular las teclas del teclado
 				libreria.bindKey("W", "MoverArriba");
 				libreria.bindKey("S", "MoverAbajo");
@@ -64,7 +65,6 @@ public class PacManController implements GameController {
 				
 				PacMan p = game.getPacman();
 				dibujarPacman(p.getFila(), p.getColumna(), p.getDireccion());
-				// libreria.setCellObjectImage(10, 15, "pacman_derecha");
 				libreria.executeLater(new StarteadorDeGame(game), 4500);
 			}
 
@@ -131,21 +131,20 @@ public class PacManController implements GameController {
 	}
 
 	public void programarFinVelocidad(int duracionMs) {
-		libreria.executeLater(new Runnable() {
-	        @Override
-	        public void run() {
-	            game.desactivarVelocidad();
-	        }
-	    }, duracionMs);
+		libreria.executeLater(new FinalizadorDeVelocidad(game), 4500);
 	}
 	public void mostrarMensajeTemporal(String mensaje) {
 	    libreria.showTemporaryMessage(mensaje);
 	}
-	public void executeLater(Runnable runnable, int i) {
-		
-	}
-
 	public void dibujarPunto(int fila, int columna) {
 		libreria.setCellObjectImage(fila, columna, "puntoPac");
+	}
+
+	public void mostrarBotonReiniciar() {
+	    AccionReiniciar accion = new AccionReiniciar(game);
+	    libreria.addButton("RESTART"); 
+	}	
+	public void mensaje(String mensaje) {
+		libreria.showMessage(mensaje);
 	}
 }
