@@ -4,7 +4,7 @@ public class PacMan {
 	private int direccion = 0; // 0= arriba, 1= derecha, 2= abajo, 3= izquierda
 	private int fila = 10;
 	private int columna = 15;
-	private PacManGame game; // Referencia correcta al juego
+	private PacManGame game; 
 	private String idDelAvanzador;
 
 	public PacMan(int fila, int columna, PacManGame game) {
@@ -90,7 +90,17 @@ public class PacMan {
 	}
 	
 	public void comenzarAAvanzar() {
-		idDelAvanzador = game.executeRepeatedly(new AvanzadorDePacman(this), 200);
+		int tiempo;
+	    if (game.isVelocidadAumentada()) {
+	        tiempo = 70;  // rapidisimo con piña
+	    } else {
+	        tiempo = 200; // velocidad normal
+	    }
+		idDelAvanzador = game.executeRepeatedly(new AvanzadorDePacman(this), tiempo);
+	}
+	public void actualizarVelocidad() {
+	    detenerse();          // Detiene el temporizador actual
+	    comenzarAAvanzar();   // Arranca un nuevo temporizador con el nuevo tiempo
 	}
 	
 	public void detenerse() {
