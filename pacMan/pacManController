@@ -129,6 +129,9 @@ public class PacManController implements GameController {
 	public void dibujarFantasma(int fila, int columna, String imagen) {
 		libreria.setCellObjectImage(fila, columna, imagen);
 	}
+	public void dibujarFantasmaAzul(int fila, int columna, String imagen) {
+		libreria.setCellObjectImage(fila, columna, "Fantasma_Azul");
+	}
 
 	public void programarFinVelocidad(int duracionMs) {
 		libreria.executeLater(new FinalizadorDeVelocidad(game), 4500);
@@ -146,5 +149,11 @@ public class PacManController implements GameController {
 	}	
 	public void mensaje(String mensaje) {
 		libreria.showMessage(mensaje);
+	}
+	public void programarFinFantasmaAzul(int duracionMs) {
+	    libreria.executeLater(new FinalizadorDeFantasmaAzul(game), 10000);
+	}
+	public void programarLiberacionFantasma(int duracionMs) {
+	    libreria.executeLater(new LiberadorDeFantasma(game), duracionMs);
 	}
 }
