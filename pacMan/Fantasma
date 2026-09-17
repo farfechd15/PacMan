@@ -10,7 +10,8 @@ public class Fantasma {
 	private PacManGame game;
 	private String idDelAvanzadorf;
 	private int velocidad = 125;
-    private int contadorRalentizado = 0;
+	private int contadorRalentizado = 0;
+	private boolean Azul = false;
 
 	private Random rnd = new Random();
 
@@ -36,6 +37,9 @@ public class Fantasma {
 
 	public void dibujar() {
 		game.dibujarFantasma(fila, columna, "fantasma_" + color + "_" + direccion);
+	}
+	public void dibujarA() {
+		game.dibujarFantasmaAzul(fila, columna, "fantasma_" + color + "_" + direccion);
 	}
 
 	public void borrar() {
@@ -106,7 +110,11 @@ public class Fantasma {
 			throw new IllegalStateException("ValorDeDireccionInvalido");
 		}
 		girar();
-		dibujar();
+		if(Azul) {
+			dibujarA();
+		} else if (!Azul){
+			dibujar();
+		}
 		game.verificarColision();
 	}
 
@@ -119,10 +127,10 @@ public class Fantasma {
 	}
 
 	public void setVelocidad(int nuevaVelocidad) {
-        this.velocidad = nuevaVelocidad;
-        dejarDeAvanzar();    
+		this.velocidad = nuevaVelocidad;
+		dejarDeAvanzar();
 		comenzarMovimiento();
-    }
+	}
 
 	public void restaurarVelocidad() {
 		setVelocidad(125);
@@ -136,4 +144,21 @@ public class Fantasma {
 		this.contadorRalentizado = pasos;
 		setVelocidad(250);
 	}
+	public void setAzul(boolean azul) {
+	    this.Azul = azul;
+	}
+	public boolean esAzul() {
+	    return Azul;
+	}
+
+	public void irACasa(int nuevaFila, int nuevaColumna) {
+	    dejarDeAvanzar();
+	    borrar();
+	    this.fila = nuevaFila;
+	    this.columna = nuevaColumna;
+	    this.direccion = 0;
+	    setAzul(false);
+	}
+
+	
 }
